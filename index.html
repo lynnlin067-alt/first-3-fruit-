@@ -1,0 +1,976 @@
+html_content = """<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RetroArcade Neo - 貪食蛇 & 切水果極致遊戲體驗</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        mono: ['Share Tech Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            bg: '#0B0F19',
+                            card: '#151C2C',
+                            primary: '#10B981', // Neon green
+                            accent: '#6366F1',  // Indigo
+                            cherry: '#F43F5E',  // Pinkish red for fruit/slicing
+                            text: '#F3F4F6',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0B0F19;
+            color: #F3F4F6;
+            overflow-x: hidden;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0B0F19;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1F2937;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #10B981;
+        }
+        /* Glow effects */
+        .neon-glow-green {
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.25);
+        }
+        .neon-glow-indigo {
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+        }
+        .neon-glow-cherry {
+            box-shadow: 0 0 20px rgba(244, 63, 94, 0.3);
+        }
+    </style>
+</head>
+<body class="font-sans antialiased">
+
+    <header class="border-b border-gray-800 bg-brand-bg/80 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-primary to-brand-accent flex items-center justify-center neon-glow-green">
+                    <i data-lucide="gamepad-2" class="w-6 h-6 text-white"></i>
+                </div>
+                <span class="text-xl font-extrabold tracking-wider bg-gradient-to-r from-brand-primary via-teal-400 to-brand-accent bg-clip-text text-transparent font-mono">
+                    ARCADE_NEO
+                </span>
+            </div>
+            <nav class="hidden md:flex items-center space-x-8 text-sm font-medium text-gray-400">
+                <a href="#arcade" class="hover:text-brand-primary transition-colors">街機大廳</a>
+                <a href="#features" class="hover:text-brand-primary transition-colors">遊戲特色</a>
+                <a href="#guide" class="hover:text-brand-primary transition-colors">遊玩指南</a>
+            </nav>
+            <div>
+                <a href="#arcade" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-brand-primary to-emerald-600 text-black font-semibold text-sm hover:opacity-90 transition-all duration-300 shadow-lg shadow-emerald-500/20 inline-flex items-center space-x-2">
+                    <span>PLAY NOW</span>
+                    <i data-lucide="play" class="w-4 h-4 fill-current"></i>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <section id="arcade" class="py-12 md:py-16 relative overflow-hidden">
+        <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-brand-primary/10 rounded-full blur-3xl -z-10"></div>
+        <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-brand-accent/15 rounded-full blur-3xl -z-10"></div>
+
+        <div class="max-w-7xl mx-auto px-6">
+            
+            <div class="text-center max-w-3xl mx-auto mb-10 space-y-4">
+                <div class="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-brand-primary text-xs font-semibold tracking-wider uppercase">
+                    <span class="w-2 h-2 rounded-full bg-brand-primary animate-ping"></span>
+                    <span>Dual Game Hub v3.0</span>
+                </div>
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight">
+                    雙重經典，<br class="md:hidden">
+                    <span class="bg-gradient-to-r from-brand-primary via-teal-400 to-brand-accent bg-clip-text text-transparent">
+                        一鍵流暢切換
+                    </span>
+                </h1>
+                <p class="text-gray-400 text-base md:text-lg">
+                    點擊下方籤頁即刻啟動「霓虹貪食蛇」或全新「極速切水果」！高 FPS 動態渲染，免下載在瀏覽器直接大展身手。
+                </p>
+            </div>
+
+            <div class="flex justify-center mb-8">
+                <div class="bg-brand-card p-1.5 rounded-2xl border border-gray-800 flex space-x-2 shadow-lg">
+                    <button id="tabSnake" onclick="switchGame('snake')" class="px-6 py-3 rounded-xl font-bold text-sm tracking-wider flex items-center space-x-2 transition-all duration-300 bg-gradient-to-r from-brand-primary to-emerald-600 text-black shadow-lg shadow-emerald-500/10">
+                        <i data-lucide="footprints" class="w-4 h-4"></i>
+                        <span>霓虹貪食蛇</span>
+                    </button>
+                    <button id="tabFruit" onclick="switchGame('fruit')" class="px-6 py-3 rounded-xl font-bold text-sm tracking-wider flex items-center space-x-2 transition-all duration-300 text-gray-400 hover:text-white">
+                        <i data-lucide="sword" class="w-4 h-4"></i>
+                        <span>極速切水果</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start max-w-5xl mx-auto">
+                
+                <div class="lg:col-span-4 space-y-6">
+                    <div class="bg-brand-card border border-gray-800 rounded-3xl p-6 shadow-xl">
+                        <h3 id="sidebarTitle" class="text-2xl font-bold font-mono text-brand-primary flex items-center space-x-2">
+                            <span>SNAKE_NEO</span>
+                        </h3>
+                        <p id="sidebarDesc" class="text-gray-400 text-sm mt-3 leading-relaxed">
+                            最經典的貪食蛇！引導蛇吃掉發光的食物，每吃一個都會變長。小心不要咬到自己的身體，本版本支援從邊界穿透對向喔！
+                        </p>
+                        
+                        <div class="border-t border-gray-800 my-5 pt-5 space-y-3">
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="text-gray-500">操控方式：</span>
+                                <span id="sidebarControls" class="text-white font-semibold">方向鍵 / WASD</span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="text-gray-500">當前得分：</span>
+                                <span id="currentScore" class="text-xl font-bold font-mono text-brand-primary">000</span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="text-gray-500">個人最佳：</span>
+                                <span id="highScore" class="text-xl font-bold font-mono text-white">000</span>
+                            </div>
+                        </div>
+
+                        <div class="pt-4 border-t border-gray-800">
+                            <div class="flex items-center justify-between text-sm">
+                                <label for="difficulty" class="text-gray-500">遊戲難度：</label>
+                                <select id="difficulty" class="bg-gray-900 border border-gray-800 rounded px-2 py-1 text-white focus:outline-none focus:border-brand-primary font-mono text-xs">
+                                    <option value="easy">輕鬆 (Easy)</option>
+                                    <option value="medium" selected>標準 (Medium)</option>
+                                    <option value="hard">狂熱 (Hard)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="resetHighScore" class="w-full py-3 bg-gray-900 hover:bg-gray-850 text-gray-500 hover:text-red-400 border border-gray-850 rounded-2xl text-xs transition-all flex items-center justify-center space-x-2">
+                        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                        <span>重設個人高分</span>
+                    </button>
+                </div>
+
+                <div class="lg:col-span-8 flex flex-col items-center">
+                    <div class="w-full max-w-[500px] bg-brand-card border border-gray-800 rounded-3xl p-6 shadow-2xl relative neon-glow-indigo">
+                        
+                        <div class="flex justify-between items-center mb-4">
+                            <div class="flex items-center space-x-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
+                                <span id="arcadeTypeLabel" class="text-xs text-gray-400 uppercase tracking-widest font-mono">SNAKE_MODE</span>
+                            </div>
+                            <div class="text-[10px] text-gray-500 font-mono">FPS: 60 / WEB_GL_CANVAS</div>
+                        </div>
+
+                        <div class="relative bg-[#05070c] rounded-2xl overflow-hidden border border-gray-900 aspect-square flex items-center justify-center cursor-crosshair">
+                            <canvas id="gameCanvas" width="400" height="400" class="w-full h-full block"></canvas>
+
+                            <div id="gameOverlay" class="absolute inset-0 bg-black/85 flex flex-col items-center justify-center text-center p-6 transition-opacity duration-300">
+                                <div id="overlayContent" class="space-y-6">
+                                    <div id="overlayIconContainer" class="w-16 h-16 mx-auto rounded-full bg-brand-primary/10 flex items-center justify-center text-brand-primary neon-glow-green">
+                                        <i id="overlayIcon" data-lucide="play" class="w-8 h-8 fill-current"></i>
+                                    </div>
+                                    <div>
+                                        <h3 id="overlayTitle" class="text-2xl font-bold font-mono tracking-wider text-white">SNAKE NEO</h3>
+                                        <p id="overlayDesc" class="text-sm text-gray-400 mt-1">控制方向，吞噬霓虹能量方塊！</p>
+                                    </div>
+                                    <button id="startBtn" class="px-8 py-3 rounded-xl bg-gradient-to-r from-brand-primary to-emerald-500 text-black font-bold tracking-wider hover:scale-105 active:scale-95 transition-transform duration-150">
+                                        START GAME
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="snakeMobileControls" class="mt-6 grid grid-cols-3 gap-2 max-w-[200px] mx-auto md:hidden">
+                            <div></div>
+                            <button id="ctrlUp" class="py-3.5 bg-gray-800 active:bg-brand-primary/20 border border-gray-700 active:border-brand-primary rounded-xl flex items-center justify-center transition-all">
+                                <i data-lucide="chevron-up" class="w-5 h-5 text-white"></i>
+                            </button>
+                            <div></div>
+                            <button id="ctrlLeft" class="py-3.5 bg-gray-800 active:bg-brand-primary/20 border border-gray-700 active:border-brand-primary rounded-xl flex items-center justify-center transition-all">
+                                <i data-lucide="chevron-left" class="w-5 h-5 text-white"></i>
+                            </button>
+                            <button id="ctrlDown" class="py-3.5 bg-gray-800 active:bg-brand-primary/20 border border-gray-700 active:border-brand-primary rounded-xl flex items-center justify-center transition-all">
+                                <i data-lucide="chevron-down" class="w-5 h-5 text-white"></i>
+                            </button>
+                            <button id="ctrlRight" class="py-3.5 bg-gray-800 active:bg-brand-primary/20 border border-gray-700 active:border-brand-primary rounded-xl flex items-center justify-center transition-all">
+                                <i data-lucide="chevron-right" class="w-5 h-5 text-white"></i>
+                            </button>
+                        </div>
+
+                        <div id="fruitSliceTip" class="hidden mt-4 text-center text-xs text-gray-500 font-mono">
+                            💡 移動滑鼠或用手指在畫布上滑過，即可劃破水果！
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+    <section id="features" class="py-20 bg-brand-card/30 border-y border-gray-800">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center max-w-2xl mx-auto mb-16">
+                <h2 class="text-3xl font-bold">極致街機性能特色</h2>
+                <p class="text-gray-400 mt-2">結合最前沿的 Web 技術，打造原生的流暢操作感受。</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="p-8 bg-brand-card rounded-2xl border border-gray-800 hover:border-brand-primary/40 transition-all group">
+                    <div class="w-12 h-12 rounded-xl bg-brand-primary/10 flex items-center justify-center text-brand-primary mb-6 group-hover:scale-110 transition-transform">
+                        <i data-lucide="zap" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">高流暢度物理引擎</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        貪食蛇的極速轉向、切水果的精準刀光軌跡，皆透過高性能數學公式即時運算，絕不拖泥帶水。
+                    </p>
+                </div>
+                <div class="p-8 bg-brand-card rounded-2xl border border-gray-800 hover:border-brand-accent/40 transition-all group">
+                    <div class="w-12 h-12 rounded-xl bg-brand-accent/10 flex items-center justify-center text-brand-accent mb-6 group-hover:scale-110 transition-transform">
+                        <i data-lucide="sword" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">流暢滑動斬擊</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        切水果遊戲完美支援桌機滑鼠與手機觸控，即時繪製霓虹漸層刀光，享受刀刀切碎水果的舒壓快感。
+                    </p>
+                </div>
+                <div class="p-8 bg-brand-card rounded-2xl border border-gray-800 hover:border-brand-primary/40 transition-all group">
+                    <div class="w-12 h-12 rounded-xl bg-brand-primary/10 flex items-center justify-center text-brand-primary mb-6 group-hover:scale-110 transition-transform">
+                        <i data-lucide="award" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">獨立排行快取</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">
+                        兩款遊戲均具備獨立的高分 LocalStorage 紀錄儲存器，您可以在各自的遊戲中持續挑戰自我極限！
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="guide" class="py-20">
+        <div class="max-w-4xl mx-auto px-6 bg-brand-card border border-gray-800 rounded-3xl p-8 md:p-12 relative overflow-hidden">
+            <div class="absolute -right-16 -bottom-16 w-64 h-64 bg-brand-primary/5 rounded-full blur-3xl"></div>
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-8">
+                <div class="space-y-4">
+                    <h2 class="text-2xl font-bold text-white">兩大遊戲基本規則</h2>
+                    <div class="space-y-4 text-gray-300 text-sm">
+                        <div>
+                            <h4 class="text-brand-primary font-bold mb-1">🐍 霓虹貪食蛇：</h4>
+                            <p>吃掉隨機出現的綠色（+10分）或黃金（+30分）能量方塊，不能撞到自己的身體，可穿牆。</p>
+                        </div>
+                        <div>
+                            <h4 class="text-brand-cherry font-bold mb-1">🍎 極速切水果：</h4>
+                            <p>滑動鼠標/手指切碎被拋出的霓虹水果（+10分/顆）。漏掉水果會扣除生命值，切到炸彈會直接 Game Over！</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex-shrink-0 flex flex-col items-center justify-center bg-gray-900/50 p-6 rounded-2xl border border-gray-850">
+                    <div class="text-sm text-gray-400 mb-4 font-mono uppercase tracking-wider">霓虹水果與炸彈</div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="flex flex-col items-center">
+                            <span class="text-2xl">🍉</span>
+                            <span class="text-[10px] text-gray-500">霓虹西瓜</span>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            <span class="text-2xl">💣</span>
+                            <span class="text-[10px] text-gray-500">致命炸彈</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="border-t border-gray-800 py-12 text-center text-sm text-gray-500">
+        <div class="max-w-7xl mx-auto px-6 space-y-4">
+            <div class="flex justify-center space-x-6">
+                <a href="#" class="hover:text-brand-primary">隱私政策</a>
+                <a href="#" class="hover:text-brand-primary">服務條款</a>
+                <a href="#" class="hover:text-brand-primary">回報問題</a>
+            </div>
+            <p>© 2026 ARCADE_NEO. All rights reserved. 經典新生，淬鍊而作。</p>
+        </div>
+    </footer>
+
+    <script>
+        // Init Lucide
+        lucide.createIcons();
+
+        // DOM elements
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const tabSnake = document.getElementById('tabSnake');
+        const tabFruit = document.getElementById('tabFruit');
+        
+        const sidebarTitle = document.getElementById('sidebarTitle');
+        const sidebarDesc = document.getElementById('sidebarDesc');
+        const sidebarControls = document.getElementById('sidebarControls');
+        const currentScoreEl = document.getElementById('currentScore');
+        const highScoreEl = document.getElementById('highScore');
+        const difficultySelect = document.getElementById('difficulty');
+        const resetHighBtn = document.getElementById('resetHighScore');
+        
+        const arcadeTypeLabel = document.getElementById('arcadeTypeLabel');
+        const gameOverlay = document.getElementById('gameOverlay');
+        const overlayTitle = document.getElementById('overlayTitle');
+        const overlayDesc = document.getElementById('overlayDesc');
+        const startBtn = document.getElementById('startBtn');
+        const snakeMobileControls = document.getElementById('snakeMobileControls');
+        const fruitSliceTip = document.getElementById('fruitSliceTip');
+
+        // Global Variables
+        let currentGame = 'snake'; // 'snake' or 'fruit'
+        let isPlaying = false;
+        let score = 0;
+        let snakeHighScore = localStorage.getItem('snakeHighScore') || 0;
+        let fruitHighScore = localStorage.getItem('fruitHighScore') || 0;
+        let gameLoopInterval = null;
+
+        // --- SNAKE GAME CONSTANTS & STATE ---
+        const gridSize = 20;
+        const tileCount = canvas.width / gridSize;
+        let snake = [];
+        let food = { x: 0, y: 0 };
+        let isGoldenFood = false;
+        let dx = gridSize, dy = 0;
+        let nextDirection = { x: gridSize, y: 0 };
+
+        // --- FRUIT NINJA CONSTANTS & STATE ---
+        let fruits = [];
+        let particles = [];
+        let bladePath = [];
+        let fruitSpawnTimer = 0;
+        let lives = 3;
+        let isMouseDown = false;
+
+        const fruitEmojis = ['🍎', '🍉', '🍍', '🍊', '🍓', '🍌'];
+
+        // Init setup
+        updateHighScoreDisplay();
+
+        // Switch Game Tab
+        function switchGame(gameType) {
+            if (currentGame === gameType) return;
+            
+            // Stop current game
+            stopGame();
+
+            currentGame = gameType;
+
+            // Reset UI States & Styles of Tabs
+            if (currentGame === 'snake') {
+                tabSnake.className = "px-6 py-3 rounded-xl font-bold text-sm tracking-wider flex items-center space-x-2 transition-all duration-300 bg-gradient-to-r from-brand-primary to-emerald-600 text-black shadow-lg shadow-emerald-500/10";
+                tabFruit.className = "px-6 py-3 rounded-xl font-bold text-sm tracking-wider flex items-center space-x-2 transition-all duration-300 text-gray-400 hover:text-white";
+                
+                sidebarTitle.textContent = "SNAKE_NEO";
+                sidebarDesc.textContent = "最經典的貪食蛇！引導蛇吃掉發光的食物，每吃一個都會變長。小心不要咬到自己的身體，本版本支援從邊界穿透對向喔！";
+                sidebarControls.textContent = "方向鍵 / WASD";
+                arcadeTypeLabel.textContent = "SNAKE_MODE";
+                
+                snakeMobileControls.style.display = 'grid';
+                fruitSliceTip.classList.add('hidden');
+
+                overlayTitle.textContent = "SNAKE NEO";
+                overlayDesc.textContent = "控制方向，吞噬霓虹能量方塊！";
+                document.getElementById('overlayIcon').setAttribute('data-lucide', 'play');
+            } else {
+                tabFruit.className = "px-6 py-3 rounded-xl font-bold text-sm tracking-wider flex items-center space-x-2 transition-all duration-300 bg-gradient-to-r from-brand-cherry to-pink-600 text-white shadow-lg shadow-pink-500/15";
+                tabSnake.className = "px-6 py-3 rounded-xl font-bold text-sm tracking-wider flex items-center space-x-2 transition-all duration-300 text-gray-400 hover:text-white";
+                
+                sidebarTitle.textContent = "FRUIT_SLICE";
+                sidebarDesc.textContent = "極速切水果！利用滑鼠或手指在屏幕上拖曳，快速切開被丟出來的所有霓虹水果，避開紅色致命炸彈，一共擁有 3 次失手漏果機會！";
+                sidebarControls.textContent = "滑鼠拖曳 / 觸控滑動";
+                arcadeTypeLabel.textContent = "FRUIT_MODE";
+
+                snakeMobileControls.style.display = 'none';
+                fruitSliceTip.classList.remove('hidden');
+
+                overlayTitle.textContent = "FRUIT SLICE";
+                overlayDesc.textContent = "舞動霓虹劍光，切碎水果！避開致命炸彈！";
+                document.getElementById('overlayIcon').setAttribute('data-lucide', 'sword');
+            }
+
+            lucide.createIcons();
+            updateHighScoreDisplay();
+            currentScoreEl.textContent = '000';
+            
+            // Show Overlay again
+            gameOverlay.classList.remove('opacity-0', 'pointer-events-none');
+            startBtn.textContent = "START GAME";
+
+            // Draw clean background
+            drawBackgroundOnly();
+        }
+
+        function drawBackgroundOnly() {
+            ctx.fillStyle = '#05070c';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function updateHighScoreDisplay() {
+            if (currentGame === 'snake') {
+                highScoreEl.textContent = String(snakeHighScore).padStart(3, '0');
+            } else {
+                highScoreEl.textContent = String(fruitHighScore).padStart(3, '0');
+            }
+        }
+
+        // --- COMMON GAME LOOP CONTROLS ---
+        function startGame() {
+            isPlaying = true;
+            score = 0;
+            currentScoreEl.textContent = '000';
+            gameOverlay.classList.add('opacity-0', 'pointer-events-none');
+
+            const diff = difficultySelect.value;
+
+            if (currentGame === 'snake') {
+                initSnake();
+                let speed = 80;
+                if (diff === 'easy') speed = 120;
+                if (diff === 'hard') speed = 50;
+
+                if (gameLoopInterval) clearInterval(gameLoopInterval);
+                gameLoopInterval = setInterval(snakeTick, speed);
+            } else {
+                initFruitGame();
+                if (gameLoopInterval) clearInterval(gameLoopInterval);
+                // Fruit ninja uses requestAnimationFrame for high performance canvas rendering
+                runFruitGameLoop();
+            }
+        }
+
+        function stopGame() {
+            isPlaying = false;
+            if (gameLoopInterval) {
+                clearInterval(gameLoopInterval);
+                gameLoopInterval = null;
+            }
+        }
+
+        function gameOver() {
+            isPlaying = false;
+            stopGame();
+
+            overlayTitle.textContent = "GAME OVER";
+            overlayDesc.textContent = `你在難度 [${difficultySelect.value.toUpperCase()}] 中斬獲了 ${score} 分！`;
+            startBtn.textContent = "REPLAY ARCADE";
+            gameOverlay.classList.remove('opacity-0', 'pointer-events-none');
+        }
+
+        // --- SNAKE ENGINE IMPLEMENTATION ---
+        function initSnake() {
+            snake = [
+                { x: gridSize * 5, y: gridSize * 10 },
+                { x: gridSize * 4, y: gridSize * 10 },
+                { x: gridSize * 3, y: gridSize * 10 }
+            ];
+            dx = gridSize;
+            dy = 0;
+            nextDirection = { x: gridSize, y: 0 };
+            spawnSnakeFood();
+        }
+
+        function spawnSnakeFood() {
+            food.x = Math.floor(Math.random() * tileCount) * gridSize;
+            food.y = Math.floor(Math.random() * tileCount) * gridSize;
+            for (let part of snake) {
+                if (part.x === food.x && part.y === food.y) {
+                    spawnSnakeFood();
+                    return;
+                }
+            }
+            isGoldenFood = Math.random() < 0.15;
+        }
+
+        function snakeTick() {
+            dx = nextDirection.x;
+            dy = nextDirection.y;
+
+            const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+
+            // Screen Wrap
+            if (head.x < 0) head.x = canvas.width - gridSize;
+            else if (head.x >= canvas.width) head.x = 0;
+
+            if (head.y < 0) head.y = canvas.height - gridSize;
+            else if (head.y >= canvas.height) head.y = 0;
+
+            // Collision check
+            for (let i = 0; i < snake.length; i++) {
+                if (snake[i].x === head.x && snake[i].y === head.y) {
+                    gameOver();
+                    return;
+                }
+            }
+
+            snake.unshift(head);
+
+            if (head.x === food.x && head.y === food.y) {
+                score += isGoldenFood ? 30 : 10;
+                currentScoreEl.textContent = String(score).padStart(3, '0');
+                if (score > snakeHighScore) {
+                    snakeHighScore = score;
+                    localStorage.setItem('snakeHighScore', snakeHighScore);
+                    updateHighScoreDisplay();
+                }
+                spawnSnakeFood();
+            } else {
+                snake.pop();
+            }
+
+            drawSnakeGame();
+        }
+
+        function drawSnakeGame() {
+            drawBackgroundOnly();
+
+            // Subtle Grid Line drawing
+            ctx.strokeStyle = '#111827';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < tileCount; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * gridSize, 0); ctx.lineTo(i * gridSize, canvas.height); ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(0, i * gridSize); ctx.lineTo(canvas.width, i * gridSize); ctx.stroke();
+            }
+
+            // Food
+            if (isGoldenFood) {
+                ctx.fillStyle = '#F59E0B'; // Gold
+                ctx.shadowColor = '#F59E0B';
+                ctx.shadowBlur = 12;
+            } else {
+                ctx.fillStyle = '#10B981'; // Green neon
+                ctx.shadowColor = '#10B981';
+                ctx.shadowBlur = 8;
+            }
+            ctx.fillRect(food.x + 2, food.y + 2, gridSize - 4, gridSize - 4);
+            ctx.shadowBlur = 0; // reset
+
+            // Snake
+            snake.forEach((part, index) => {
+                const isHead = index === 0;
+                if (isHead) {
+                    ctx.fillStyle = '#6366F1'; // Accent indigo head
+                    ctx.shadowColor = '#6366F1';
+                    ctx.shadowBlur = 10;
+                } else {
+                    ctx.fillStyle = '#374151'; // Slate charcoal body
+                }
+                ctx.fillRect(part.x + 1, part.y + 1, gridSize - 2, gridSize - 2);
+                ctx.shadowBlur = 0;
+            });
+        }
+
+
+        // --- FRUIT NINJA ENGINE IMPLEMENTATION ---
+        function initFruitGame() {
+            fruits = [];
+            particles = [];
+            bladePath = [];
+            lives = 3;
+            fruitSpawnTimer = 0;
+        }
+
+        function runFruitGameLoop() {
+            if (!isPlaying) return;
+            updateFruitGame();
+            drawFruitGame();
+            requestAnimationFrame(runFruitGameLoop);
+        }
+
+        function createFruit() {
+            const isBomb = Math.random() < 0.15; // 15% bomb spawn rate
+            const x = Math.random() * (canvas.width - 60) + 30;
+            const y = canvas.height + 20;
+            
+            // Random arcs
+            const speedX = (canvas.width / 2 - x) * 0.03 + (Math.random() - 0.5) * 2;
+            const speedY = -(Math.random() * 5 + 11); // launch up velocity
+
+            fruits.push({
+                x: x,
+                y: y,
+                vx: speedX,
+                vy: speedY,
+                radius: 24,
+                isBomb: isBomb,
+                sliced: false,
+                emoji: isBomb ? '💣' : fruitEmojis[Math.floor(Math.random() * fruitEmojis.length)],
+                rotation: Math.random() * Math.PI,
+                rotSpeed: (Math.random() - 0.5) * 0.05
+            });
+        }
+
+        function createSplatterParticles(x, y, color) {
+            for (let i = 0; i < 12; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 8,
+                    vy: (Math.random() - 0.5) * 8 - 2,
+                    radius: Math.random() * 4 + 2,
+                    color: color,
+                    alpha: 1,
+                    decay: Math.random() * 0.03 + 0.01
+                });
+            }
+        }
+
+        function updateFruitGame() {
+            // Spawn logic
+            fruitSpawnTimer++;
+            const diff = difficultySelect.value;
+            let spawnInterval = 45; // medium
+            if (diff === 'easy') spawnInterval = 65;
+            if (diff === 'hard') spawnInterval = 30;
+
+            if (fruitSpawnTimer >= spawnInterval) {
+                createFruit();
+                fruitSpawnTimer = 0;
+            }
+
+            // Update fruits physics
+            for (let i = fruits.length - 1; i >= 0; i--) {
+                const f = fruits[i];
+                f.x += f.vx;
+                f.y += f.vy;
+                f.vy += 0.25; // gravity gravity
+                f.rotation += f.rotSpeed;
+
+                // Out of screen bounds check (dropped)
+                if (f.y > canvas.height + 40 && f.vy > 0) {
+                    if (!f.sliced && !f.isBomb) {
+                        lives--;
+                        if (lives <= 0) {
+                            gameOver();
+                            return;
+                        }
+                    }
+                    fruits.splice(i, 1);
+                }
+            }
+
+            // Update splatter particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.alpha -= p.decay;
+                if (p.alpha <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+
+            // Slice intersections detection
+            checkSlices();
+
+            // Decay blade trail path
+            if (bladePath.length > 0) {
+                bladePath.shift();
+            }
+        }
+
+        function checkSlices() {
+            if (bladePath.length < 2) return;
+
+            // Iterate segment of blade path
+            const p1 = bladePath[bladePath.length - 1];
+            const p2 = bladePath[bladePath.length - 2];
+
+            fruits.forEach((f) => {
+                if (f.sliced) return;
+
+                // Simple line-to-circle collision
+                const dist = distToSegment({x: f.x, y: f.y}, p1, p2);
+                if (dist < f.radius) {
+                    // Fruit cut!
+                    f.sliced = true;
+                    if (f.isBomb) {
+                        // Explosion effect & Instant death!
+                        createSplatterParticles(f.x, f.y, '#EF4444');
+                        gameOver();
+                    } else {
+                        // Slice points addition
+                        score += 10;
+                        currentScoreEl.textContent = String(score).padStart(3, '0');
+                        
+                        if (score > fruitHighScore) {
+                            fruitHighScore = score;
+                            localStorage.setItem('fruitHighScore', fruitHighScore);
+                            updateHighScoreDisplay();
+                        }
+                        
+                        // Particle explosion colored nicely based on standard fruits
+                        createSplatterParticles(f.x, f.y, '#F43F5E');
+                    }
+                }
+            });
+        }
+
+        // Distance formula from point to line segment
+        function distToSegment(p, v, w) {
+            const l2 = sqr(v.x - w.x) + sqr(v.y - w.y);
+            if (l2 === 0) return Math.sqrt(sqr(p.x - v.x) + sqr(p.y - v.y));
+            let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
+            t = Math.max(0, Math.min(1, t));
+            return Math.sqrt(sqr(p.x - (v.x + t * (w.x - v.x))) + sqr(p.y - (v.y + t * (w.y - v.y))));
+        }
+        function sqr(x) { return x * x; }
+
+        function drawFruitGame() {
+            drawBackgroundOnly();
+
+            // Draw lives left indicator on screen
+            ctx.fillStyle = '#6B7280';
+            ctx.font = '12px font-mono';
+            ctx.fillText("LIVES:", 15, 25);
+            for (let i = 0; i < 3; i++) {
+                ctx.fillStyle = i < lives ? '#F43F5E' : '#374151';
+                ctx.beginPath();
+                ctx.arc(70 + i * 18, 21, 6, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Draw Splatter Particles
+            particles.forEach(p => {
+                ctx.save();
+                ctx.globalAlpha = p.alpha;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+
+            // Draw Fruits
+            fruits.forEach(f => {
+                if (f.sliced) {
+                    // Left half
+                    ctx.save();
+                    ctx.translate(f.x - 12, f.y);
+                    ctx.rotate(f.rotation);
+                    ctx.font = `${f.radius * 2}px sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(f.emoji, 0, 0);
+                    ctx.restore();
+
+                    // Right half splitting visual effect
+                    ctx.save();
+                    ctx.translate(f.x + 12, f.y + 10);
+                    ctx.rotate(-f.rotation);
+                    ctx.font = `${f.radius * 2}px sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(f.emoji, 0, 0);
+                    ctx.restore();
+                } else {
+                    ctx.save();
+                    ctx.translate(f.x, f.y);
+                    ctx.rotate(f.rotation);
+                    
+                    // Outer glow glow for fruit
+                    ctx.shadowColor = f.isBomb ? '#EF4444' : '#F59E0B';
+                    ctx.shadowBlur = 10;
+                    
+                    ctx.font = `${f.radius * 2}px sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(f.emoji, 0, 0);
+                    ctx.restore();
+                }
+            });
+
+            // Draw Slice Blade Trails
+            if (bladePath.length > 1) {
+                ctx.save();
+                ctx.strokeStyle = '#6366F1'; // Indigo blade trail
+                ctx.shadowColor = '#6366F1';
+                ctx.shadowBlur = 15;
+                ctx.lineWidth = 5;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.beginPath();
+                ctx.moveTo(bladePath[0].x, bladePath[0].y);
+                for (let i = 1; i < bladePath.length; i++) {
+                    ctx.lineTo(bladePath[i].x, bladePath[i].y);
+                }
+                ctx.stroke();
+
+                // Inner bright center core of blade
+                ctx.strokeStyle = '#FFFFFF';
+                ctx.lineWidth = 2.5;
+                ctx.shadowBlur = 0;
+                ctx.stroke();
+                ctx.restore();
+            }
+        }
+
+
+        // --- KEYBOARD CONTROLS (SNAKE) ---
+        window.addEventListener('keydown', (e) => {
+            if (currentGame !== 'snake' || !isPlaying) return;
+            const key = e.key.toLowerCase();
+            const goingUp = dy === -gridSize;
+            const goingDown = dy === gridSize;
+            const goingRight = dx === gridSize;
+            const goingLeft = dx === -gridSize;
+
+            if ((key === 'arrowleft' || key === 'a') && !goingRight) {
+                nextDirection = { x: -gridSize, y: 0 };
+            }
+            if ((key === 'arrowright' || key === 'd') && !goingLeft) {
+                nextDirection = { x: gridSize, y: 0 };
+            }
+            if ((key === 'arrowup' || key === 'w') && !goingDown) {
+                nextDirection = { x: 0, y: -gridSize };
+            }
+            if ((key === 'arrowdown' || key === 's') && !goingUp) {
+                nextDirection = { x: 0, y: gridSize };
+            }
+        });
+
+        // Virtual buttons
+        function sendDir(dir) {
+            if (currentGame !== 'snake' || !isPlaying) return;
+            const goingUp = dy === -gridSize;
+            const goingDown = dy === gridSize;
+            const goingRight = dx === gridSize;
+            const goingLeft = dx === -gridSize;
+
+            if (dir === 'left' && !goingRight) nextDirection = { x: -gridSize, y: 0 };
+            if (dir === 'right' && !goingLeft) nextDirection = { x: gridSize, y: 0 };
+            if (dir === 'up' && !goingDown) nextDirection = { x: 0, y: -gridSize };
+            if (dir === 'down' && !goingUp) nextDirection = { x: 0, y: gridSize };
+        }
+
+        document.getElementById('ctrlUp').addEventListener('click', () => sendDir('up'));
+        document.getElementById('ctrlDown').addEventListener('click', () => sendDir('down'));
+        document.getElementById('ctrlLeft').addEventListener('click', () => sendDir('left'));
+        document.getElementById('ctrlRight').addEventListener('click', () => sendDir('right'));
+
+
+        // --- MOUSE & TOUCH EVENT BINDINGS (FRUIT SLICE) ---
+        function getCanvasMouseCoords(e) {
+            const rect = canvas.getBoundingClientRect();
+            // Scaling factor because bounding client rect can change from actual attributes
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            return {
+                x: (e.clientX - rect.left) * scaleX,
+                y: (e.clientY - rect.top) * scaleY
+            };
+        }
+
+        function getCanvasTouchCoords(e) {
+            if (e.touches.length === 0) return null;
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            return {
+                x: (e.touches[0].clientX - rect.left) * scaleX,
+                y: (e.touches[0].clientY - rect.top) * scaleY
+            };
+        }
+
+        // Mouse Handlers
+        canvas.addEventListener('mousedown', (e) => {
+            if (currentGame !== 'fruit' || !isPlaying) return;
+            isMouseDown = true;
+            const coords = getCanvasMouseCoords(e);
+            bladePath.push(coords);
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (currentGame !== 'fruit' || !isPlaying) return;
+            // Support continuous slicing without needing to hold click
+            const coords = getCanvasMouseCoords(e);
+            bladePath.push(coords);
+            if (bladePath.length > 8) {
+                bladePath.shift();
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isMouseDown = false;
+            bladePath = [];
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            isMouseDown = false;
+            bladePath = [];
+        });
+
+        // Touch Handlers (Mobile Swipe support)
+        canvas.addEventListener('touchstart', (e) => {
+            if (currentGame !== 'fruit' || !isPlaying) return;
+            const coords = getCanvasTouchCoords(e);
+            if (coords) bladePath.push(coords);
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (currentGame !== 'fruit' || !isPlaying) return;
+            // Prevent bounce scroll on mobile while slicing
+            e.preventDefault();
+            const coords = getCanvasTouchCoords(e);
+            if (coords) {
+                bladePath.push(coords);
+                if (bladePath.length > 8) {
+                    bladePath.shift();
+                }
+            }
+        });
+
+        canvas.addEventListener('touchend', () => {
+            bladePath = [];
+        });
+
+
+        // Start Trigger click
+        startBtn.addEventListener('click', startGame);
+
+        // Reset Highscore Event
+        resetHighBtn.addEventListener('click', () => {
+            if (confirm(`確定要重設當前遊戲 [${currentGame === 'snake' ? '貪食蛇' : '切水果'}] 的個人最佳分數嗎？`)) {
+                if (currentGame === 'snake') {
+                    localStorage.setItem('snakeHighScore', 0);
+                    snakeHighScore = 0;
+                } else {
+                    localStorage.setItem('fruitHighScore', 0);
+                    fruitHighScore = 0;
+                }
+                updateHighScoreDisplay();
+                currentScoreEl.textContent = '000';
+            }
+        });
+
+        // Initial setup run
+        drawBackgroundOnly();
+    </script>
+</body>
+</html>
+"""
+
+with open("retro_arcade_hub.html", "w", encoding="utf-8") as f:
+    f.write(html_content)
+
+print("Generated retro_arcade_hub.html with both games successfully!")
